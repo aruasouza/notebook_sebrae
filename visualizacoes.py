@@ -5,6 +5,8 @@ import plotly.graph_objects as go
 import math
 from plotly.subplots import make_subplots
 import plotly.io as pio
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud,STOPWORDS
 # from os import path
 
 # bundle_dir = path.abspath(path.dirname(__file__))
@@ -15,6 +17,16 @@ pio.templates.default = "plotly"
 
 concorrentes = pd.read_csv('concorrentes_parametros.csv')
 produtos = pd.read_csv('produtos_para_analise.csv')
+stopwords = set(STOPWORDS)
+stopwords.add('de')
+stopwords.add('e')
+stopwords.add('em')
+stopwords.add('o')
+stopwords.add('ao')
+stopwords.add('da')
+stopwords.add('à')
+stopwords.add('para')
+stopwords.add('como')
 
 def idade():
     sorted = concorrentes.loc[[not np.isnan(x) for x in list(concorrentes['idade'])]].sort_values('idade',ascending = False).reset_index(drop=True)
@@ -109,15 +121,17 @@ def preco_hora():
 
 def graficos():
     lista = produtos['grande_area_legenda'].drop_duplicates(keep = 'first').values
-    mean = len(produtos) / len(lista)
+    id_sebrae = int(concorrentes.loc[concorrentes['Nome'] == 'SEBRAE SC']['Código'])
+    sorted = produtos.loc[produtos['id_conc'] != id_sebrae]
+    mean = len(sorted) / len(lista)
     fig1 = go.Figure(data = [
-        go.Histogram(x=produtos['grande_area_legenda'],name = 'Contagem',
-        text = [len(produtos.loc[produtos['grande_area_legenda'] == g]) for g in lista]),
+        go.Histogram(x=sorted['grande_area_legenda'],name = 'Contagem',
+        text = [len(sorted.loc[sorted['grande_area_legenda'] == g]) for g in lista]),
         go.Scatter(x = lista,y = [mean for i in range(len(lista))],name = 'Média',line = dict(dash = 'dot'),mode = 'lines')
     ])
     fig1.update_layout(title = 'Total de Produtos por Grande Área',showlegend=False,title_font_size=12)
 
-    filtered = produtos.loc[[not np.isnan(x) for x in produtos['duração']]]
+    filtered = sorted.loc[[not np.isnan(x) for x in sorted['duração']]]
     mean = filtered['duração'].values.mean()
     fig2 = go.Figure(data = [
         go.Histogram(x = filtered['grande_area_legenda'],y = filtered['duração'],histfunc = 'avg',name = 'Média Área',
@@ -126,7 +140,7 @@ def graficos():
     ])
     fig2.update_layout(title = 'Duração Média dos Produtos Encontrados (em horas)',showlegend=False,title_font_size=12)
 
-    filtered = produtos.loc[[not np.isnan(x) for x in produtos['faixa_peco']]]
+    filtered = sorted.loc[[not np.isnan(x) for x in sorted['faixa_peco']]]
     mean = filtered['faixa_peco'].values.mean()
     fig3 = go.Figure(data = [
         go.Histogram(x = filtered['grande_area_legenda'],y = filtered['faixa_peco'],histfunc = 'avg',name = 'Média Área',
@@ -135,7 +149,7 @@ def graficos():
     ])
     fig3.update_layout(title = 'Preço Médio dos Produtos por Grande Área (em reais)',showlegend=False,title_font_size=12)
 
-    filtered = produtos.loc[produtos['tipo_oferta'] != '']
+    filtered = sorted.loc[sorted['tipo_oferta'] != '']
     lista = filtered['tipo_oferta'].drop_duplicates(keep = 'first').values
     mean = len(filtered) / len(lista)
     fig4 = go.Figure(data = [
@@ -144,7 +158,7 @@ def graficos():
     ])
     fig4.update_layout(title = 'Total de Produtos por Tipo de Oferta',showlegend=False,title_font_size=12)
 
-    filtered = produtos
+    filtered = sorted
     lista = ['Pré-Operação','Até 2 anos','Entre 2 e 5 anos','Acima de 5 anos','Não Definido']
     mean = len(filtered) / len(lista)
     fig5 = go.Figure(data = [
@@ -280,3 +294,25 @@ def boxplot():
     fig.update_layout(title = 'Boxplot de Preços por Concorrente (escala logarítmica)')
 
     return fig
+
+def word_cloud_sebrae():
+    id_sebrae = int(concorrentes.loc[concorrentes['Nome'] == 'SEBRAE SC','Código'])
+    produtos_sebrae = produtos.loc[produtos['id_conc'] == id_sebrae]
+    words_sebrae = produtos_sebrae['nome_produto']
+    all_words_sebrae = ' '.join(word for word in words_sebrae).lower()
+    wc_sebrae = WordCloud(stopwords = stopwords,background_color = 'white',width = 1600,height = 800).generate(all_words_sebrae)
+    fig,ax = plt.subplots(figsize = (14,7))
+    ax.imshow(wc_sebrae,interpolation = 'bilinear')
+    ax.set_axis_off()
+    plt.imshow(wc_sebrae)
+
+def word_cloud_conc():
+    id_sebrae = int(concorrentes.loc[concorrentes['Nome'] == 'SEBRAE SC','Código'])
+    produtos_conc = produtos.loc[produtos['id_conc'] != id_sebrae]
+    words_conc = produtos_conc['nome_produto']
+    all_words_conc = ' '.join(word for word in words_conc).lower()
+    wc_conc = WordCloud(stopwords = stopwords,background_color = 'white',width = 1600,height = 800).generate(all_words_conc)
+    fig,ax = plt.subplots(figsize = (14,7))
+    ax.imshow(wc_conc,interpolation = 'bilinear')
+    ax.set_axis_off()
+    plt.imshow(wc_conc)
