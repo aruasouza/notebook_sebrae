@@ -7,6 +7,7 @@ from plotly.subplots import make_subplots
 import plotly.io as pio
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud,STOPWORDS
+
 # from os import path
 
 # bundle_dir = path.abspath(path.dirname(__file__))
@@ -29,7 +30,7 @@ stopwords.add('para')
 stopwords.add('como')
 
 def idade():
-    sorted = concorrentes.loc[[not np.isnan(x) for x in list(concorrentes['idade'])]].sort_values('idade',ascending = False).reset_index(drop=True)
+    sorted = concorrentes.loc[concorrentes.idade.notnull()].sort_values('idade',ascending = False).reset_index(drop=True)
     
     array = np.array(list(filter(lambda x: x > 0,sorted['idade'])))
     mean = array.mean()
@@ -51,7 +52,7 @@ def idade():
     return fig
 
 def preco_medio():
-    sorted = concorrentes.loc[[not np.isnan(x) for x in list(concorrentes['preco_std'])]].sort_values('preco_medio',ascending = False).reset_index(drop=True)
+    sorted = concorrentes.loc[concorrentes.preco_medio.notnull()].sort_values('preco_medio',ascending = False).reset_index(drop=True)
     
     array = sorted['preco_medio'].values
     mean = array.mean()
@@ -70,7 +71,7 @@ def preco_medio():
     return fig
 
 def duracao_media():
-    sorted = concorrentes.loc[[not np.isnan(x) for x in list(concorrentes['duracao_std'])]].sort_values('duracao_media',ascending = False).reset_index(drop=True)
+    sorted = concorrentes.loc[concorrentes.duracao_media.notnull()].sort_values('duracao_media',ascending = False).reset_index(drop=True)
     
     array = sorted['duracao_media'].values
     mean = array.mean()
@@ -102,7 +103,7 @@ def quantidade_cursos():
     return fig
 
 def preco_hora():
-    sorted = concorrentes.loc[[not np.isnan(x) for x in list(concorrentes['preco_hora_medio'])]].reset_index(drop = True)
+    sorted = concorrentes.loc[concorrentes.preco_hora_medio.notnull()].reset_index(drop = True)
 
     array = np.array(list(filter(lambda x: x < 10**10,sorted['preco_hora_medio'])))
     mean = array.mean()
@@ -131,7 +132,7 @@ def graficos():
     ])
     fig1.update_layout(title = 'Total de Produtos por Grande Área',showlegend=False,title_font_size=12)
 
-    filtered = sorted.loc[[not np.isnan(x) for x in sorted['duração']]]
+    filtered = sorted.loc[sorted['duração'].notnull()]
     mean = filtered['duração'].values.mean()
     fig2 = go.Figure(data = [
         go.Histogram(x = filtered['grande_area_legenda'],y = filtered['duração'],histfunc = 'avg',name = 'Média Área',
@@ -140,7 +141,7 @@ def graficos():
     ])
     fig2.update_layout(title = 'Duração Média dos Produtos Encontrados (em horas)',showlegend=False,title_font_size=12)
 
-    filtered = sorted.loc[[not np.isnan(x) for x in sorted['faixa_peco']]]
+    filtered = sorted.loc[sorted['faixa_peco'].notnull()]
     mean = filtered['faixa_peco'].values.mean()
     fig3 = go.Figure(data = [
         go.Histogram(x = filtered['grande_area_legenda'],y = filtered['faixa_peco'],histfunc = 'avg',name = 'Média Área',
@@ -149,7 +150,7 @@ def graficos():
     ])
     fig3.update_layout(title = 'Preço Médio dos Produtos por Grande Área (em reais)',showlegend=False,title_font_size=12)
 
-    filtered = sorted.loc[sorted['tipo_oferta'] != '']
+    filtered = sorted.loc[sorted['tipo_oferta'].notnull()]
     lista = filtered['tipo_oferta'].drop_duplicates(keep = 'first').values
     mean = len(filtered) / len(lista)
     fig4 = go.Figure(data = [
@@ -177,7 +178,7 @@ def quadrantes():
     fig = make_subplots(rows = 1,cols = 3)
 
     # Plot 1
-    sorted = concorrentes.loc[[x != None for x in list(concorrentes['preco_medio'])]].reset_index(drop = True)
+    sorted = concorrentes.loc[concorrentes['preco_medio'].notnull()].reset_index(drop = True)
     colors = ['rgba(99,111,251,255)',] * len(sorted)
     index_sebrae = sorted.loc[sorted['Nome'] == 'SEBRAE SC'].index[0]
     colors[index_sebrae] = 'crimson'
@@ -191,7 +192,7 @@ def quadrantes():
     fig.update_yaxes(title = 'Quantidade de Cursos',row = 1,col = 1,showgrid = False)
 
     # Plot 2
-    sorted = sorted.loc[[x != None for x in list(sorted['duracao_media'])]].reset_index(drop = True)
+    sorted = sorted.loc[sorted['duracao_media'].notnull()].reset_index(drop = True)
     colors = ['rgba(99,111,251,255)',] * len(sorted)
     index_sebrae = sorted.loc[sorted['Nome'] == 'SEBRAE SC'].index[0]
     colors[index_sebrae] = 'crimson'
@@ -205,7 +206,7 @@ def quadrantes():
     fig.update_yaxes(title = 'Preço Médio',row = 1,col = 2,showgrid = False)
 
     # Plot 3
-    sorted = concorrentes.loc[[x != None for x in list(concorrentes['duracao_media'])]].reset_index(drop = True)
+    sorted = concorrentes.loc[concorrentes['duracao_media'].notnull()].reset_index(drop = True)
     colors = ['rgba(99,111,251,255)',] * len(sorted)
     index_sebrae = sorted.loc[sorted['Nome'] == 'SEBRAE SC'].index[0]
     colors[index_sebrae] = 'crimson'
@@ -227,8 +228,8 @@ def quadrantes():
     fig = make_subplots(rows = 1,cols = 3)
 
     # Plot 1
-    sorted = concorrentes.loc[[x != None for x in list(concorrentes['maturidade_media'])]]
-    sorted = sorted.loc[[x != None for x in list(sorted['preco_medio'])]].reset_index(drop = True)
+    sorted = concorrentes.loc[concorrentes['maturidade_media'].notnull()]
+    sorted = sorted.loc[sorted['preco_medio'].notnull()].reset_index(drop = True)
     colors = ['rgba(99,111,251,255)',] * len(sorted)
     index_sebrae = sorted.loc[sorted['Nome'] == 'SEBRAE SC'].index[0]
     colors[index_sebrae] = 'crimson'
@@ -242,7 +243,7 @@ def quadrantes():
     fig.update_yaxes(title = 'Preço Médio',row = 1,col = 1,showgrid = False)
 
     # Plot 2
-    sorted = concorrentes.loc[[x != None for x in list(concorrentes['maturidade_media'])]].reset_index(drop = True)
+    sorted = concorrentes.loc[concorrentes['maturidade_media'].notnull()].reset_index(drop = True)
     colors = ['rgba(99,111,251,255)',] * len(sorted)
     index_sebrae = sorted.loc[sorted['Nome'] == 'SEBRAE SC'].index[0]
     colors[index_sebrae] = 'crimson'
@@ -256,8 +257,8 @@ def quadrantes():
     fig.update_yaxes(title = 'Quantidade de produtos',row = 1,col = 2,showgrid = False)
 
     # Plot 3
-    sorted = concorrentes.loc[[x != None for x in list(concorrentes['duracao_media'])]]
-    sorted = sorted.loc[[x != None for x in list(concorrentes['prop_online'])]].reset_index(drop = True)
+    sorted = concorrentes.loc[concorrentes['duracao_media'].notnull()]
+    sorted = sorted.loc[concorrentes['prop_online'].notnull()].reset_index(drop = True)
     colors = ['rgba(99,111,251,255)',] * len(sorted)
     index_sebrae = sorted.loc[sorted['Nome'] == 'SEBRAE SC'].index[0]
     colors[index_sebrae] = 'crimson'
@@ -279,7 +280,7 @@ def quadrantes():
 
 
 def boxplot():
-    sorted = concorrentes.loc[[x != None for x in list(concorrentes['preco_std'])]].sort_values(by = 'preco_medio',ascending = False)
+    sorted = concorrentes.loc[concorrentes['preco_std'].notnull()].sort_values(by = 'preco_medio',ascending = False)
     sorted = sorted.loc[sorted['preco_medio'] != 0]
     sorted = sorted.loc[sorted['Nome'] != 'SEBRAE SC']
     codigo_sebrae = int(concorrentes.loc[concorrentes['Nome'] == 'SEBRAE SC','Código'])
