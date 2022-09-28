@@ -180,7 +180,7 @@ concorrentes = conc.loc[conc['Nome'] != 'SEBRAE SC'].reset_index(drop = True)
 produtos['duração'] = [converter_horas(tempo) for tempo in produtos['duração']]
 produtos['grande_area_legenda'] = [legenda_area(key) for key in produtos['grande_area']]
 produtos['sub_area_legenda'] = [legenda_sub_area(key) for key in produtos['sub_area']]
-produtos_sebrae = produtos.loc[produtos['id_conc'] == codigo_sebrae].reset_index(drop = True)
+produtos_sebrae = pd.read_csv('Produtos SEBRAE novo.csv',sep = ';',encoding = 'ANSI')
 produtos_conc = produtos.loc[produtos['id_conc'] != codigo_sebrae].reset_index(drop = True)
 
 cargas_horarias = np.array(list(filter(lambda x:not np.isnan(x),list(produtos_sebrae['duração']))))
@@ -280,7 +280,7 @@ print('produtos dos concorrentes removidos:',len(produtos_conc_removidos))
 todos_produtos = pd.concat([produtos_conc_filtrados,produtos_sebrae]).reset_index(drop = True)
 # todos_produtos = produtos.copy()
 
-produtos_sebrae.to_csv('produtos_sebrae.csv',index = False,encoding = 'ANSI',sep = ';')
+# produtos_sebrae.to_csv('produtos_sebrae.csv',index = False,encoding = 'ANSI',sep = ';')
 # produtos_conc_filtrados.to_csv('produtos_concorrentes.csv',index = False,encoding = 'ANSI',sep = ';')
 # produtos_conc_removidos.to_csv('produtos_removidos.csv',index = False,encoding = 'ANSI',sep = ';')
 del(produtos_conc_removidos)
@@ -298,25 +298,6 @@ concorrentes = concorrentes_filtrados.copy()
 
 del(todos_produtos)
 del(concorrentes_filtrados)
-
-# print('size produtos:',len(produtos))
-produtos_sebrae = produtos.loc[produtos['id_conc'] == codigo_sebrae]
-precos_sebrae = np.array(list(filter(lambda x: not np.isnan(x),list(produtos_sebrae['faixa_peco']))))
-first_quartile = np.percentile(precos_sebrae,25)
-# print('first quartile:',first_quartile)
-third_quartile = np.percentile(precos_sebrae,75)
-# print('third quartile:',third_quartile)
-inter_quartile_range = third_quartile - first_quartile
-# print('inter quartile range:',inter_quartile_range)
-upper_fence = third_quartile + (1.5 * inter_quartile_range)
-# print('upper fence:',upper_fence)
-outliers_sebrae = produtos_sebrae[produtos_sebrae['faixa_peco'] > upper_fence]
-outliers_sebrae.to_csv('outliers_sebrae.csv',index = False,sep = ';')
-# print(outliers_sebrae['faixa_peco'])
-ids_outliers = list(outliers_sebrae['id_prod'])
-produtos = produtos.loc[~((produtos['id_conc'] == codigo_sebrae) & (produtos['faixa_peco'] > upper_fence))].reset_index(drop = True)
-# print('size produtos:',len(produtos))
-print('produtos do SEBRAE removidos:',len(outliers_sebrae))
 
 produtos['valor_hora'] = produtos['faixa_peco'] / produtos['duração']
 produtos['tipo_oferta'] = [legenda_oferta(x) for x in produtos['tipo_oferta']]
