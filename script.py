@@ -180,7 +180,12 @@ concorrentes = conc.loc[conc['Nome'] != 'SEBRAE SC'].reset_index(drop = True)
 produtos['duração'] = [converter_horas(tempo) for tempo in produtos['duração']]
 produtos['grande_area_legenda'] = [legenda_area(key) for key in produtos['grande_area']]
 produtos['sub_area_legenda'] = [legenda_sub_area(key) for key in produtos['sub_area']]
+
+filtro = pd.read_excel('Planilha Soluções Cláudio 2.xlsx')
+valid_ids = set(list(filtro['id_prod']))
+
 produtos_sebrae = pd.read_csv('Produtos SEBRAE novo.csv',sep = ';',encoding = 'ANSI')
+produtos_sebrae = produtos_sebrae.loc[[id in valid_ids for id in produtos_sebrae['id_prod']]]
 produtos_conc = produtos.loc[produtos['id_conc'] != codigo_sebrae].reset_index(drop = True)
 
 cargas_horarias = np.array(list(filter(lambda x:not np.isnan(x),list(produtos_sebrae['duração']))))
@@ -200,7 +205,7 @@ for i in range(len(concorrentes)):
 
 media_sebrae = cargas_horarias.mean()
 std_sebrae = cargas_horarias.std()
-trashold_sebrae = media_sebrae + 2 * std_sebrae
+trashold_sebrae = media_sebrae + (2 * std_sebrae)
 
 concorrentes['cursos_longos'] = None
 for i in range(len(concorrentes)):
@@ -360,4 +365,6 @@ concorrentes['Data de início de atividade'] = [convert_data(data) for data in c
 concorrentes['idade'] = [((datetime.now() - data.to_pydatetime()).days) / 365 for data in concorrentes['Data de início de atividade']]
 
 concorrentes.to_csv('concorrentes_parametros.csv',index = False)
+del(produtos['Unnamed: 18'])
+# produtos.to_csv('produtos_para_analise.csv',index = False,encoding = 'ANSI',sep = ';',decimal = ',')
 produtos.to_csv('produtos_para_analise.csv',index = False)
